@@ -1,18 +1,28 @@
-.model small
-.stack 100h
+IDEAL
+MODEL small
+STACK 100h
 
-.data
-array dw 10*20 dup(?)
+DATASEG
+    oneChar DB ?
 
-.code
-main proc
+CODESEG
 
-mov ax, @data
-mov ds, ax
+start:
+    mov ax, @data
+    mov ds, ax
 
+read_next:
+    mov ah, 3Fh
+    mov bx, 0h  ; stdin handle
+    mov cx, 1   ; 1 byte to read
+    mov dx, offset oneChar   ; read to ds:dx 
+    int 21h   ;  ax = number of bytes read
+    ; do something with [oneChar]
+    or ax,ax
+    jnz read_next
 
-mov ah, 4Ch
-int 21h
-main endp
+exit_program:
+    mov ah, 4Ch           ; Функція для завершення програми
+    int 21h               ; Виклик системного виклику
 
-end main
+END start
