@@ -8,9 +8,6 @@
     SubStrLength db 0
     FoundFlag db 0          ; Флаг для позначення знаходження підстрічки
     Counts db 255 dup(0)   ; Масив для зберігання кількості підстрічок у кожній строці
-    FileOpenErrorMsg db 'Error opening file.', 0Dh, 0Ah, '$'
-    FileOpenSuccessMsg db 'File opened successfully.', 0Dh, 0Ah, '$'
-    SubstrNotFoundMsg db 'Substring not found in file.', 0Dh, 0Ah, '$'
 
 .code
 start:
@@ -22,61 +19,15 @@ start:
     mov ah, 0Ah
     int 21h
     mov SubStrLength, 4    ; Зберігаємо довжину підстрічки
-
-    ; Відкриття файлу 
-    mov ah, 3Dh 
-    mov al, 0              ; Режим читання 
-    lea dx, FileName 
-    int 21h  
-    jnc FileOpened         ; Перевірка на успішне відкриття файлу
-    jmp FileOpenError      ; Якщо файл не відкрито, переходимо до обробки помилки
-
-FileOpened:
-    mov FileHandle, ax    ; Зберігаємо дескриптор файлу
-    ; Виведення повідомлення про успішне відкриття файлу
-    mov ah, 09h
-    lea dx, FileOpenSuccessMsg
-    int 21h
-    jmp ContinueProgram
-
-FileOpenError:
-    ; Виведення повідомлення про помилку відкриття файлу
-    mov ah, 09h
-    lea dx, FileOpenErrorMsg
-    int 21h
-
-ContinueProgram:
-
-    ; Пошук підстрічки у файлі
-    mov FileHandle, 0    ; Очищення FileHandle
     call FindSubStrInFile
 
-    ; Закриття файлу
-    mov ah, 3Eh
-    mov bx, FileHandle
-    int 21h
-
-    ; Виведення результату
-    cmp FoundFlag, 1
-    jnz PrintError        ; Вивести повідомлення про помилку, якщо підстрічка не знайдена
-
-    mov cl, Counts[bx]   ; Завантаження кількості знайдених підстрічок у регістр cx
-    ;call PrintIndexAndCount
-
 ExitProgram:
-    mov ax, 4C00h        ; Код завершення програми
+    mov ax, 4Ch        ; Код завершення програми
     int 21h
-
-PrintError:
-    ; Виведення повідомлення про помилку
-    mov ah, 09h
-    lea dx, SubstrNotFoundMsg
-    int 21h
-    jmp ExitProgram
 
 ;==================================================================================================================
 FindSubStrInFile proc
-    mov bx, FileHandle
+    mov bx, 0
     mov cl, 0             ; Зануляємо лічильник строк
 
 ReadNextLine:
@@ -225,6 +176,5 @@ EndOuterLoop:
 BubbleSort endp
 
 ;==================================================================================================================
-ErrorMsg db "Error: Unable to open or read file", '$'
 
 end start
