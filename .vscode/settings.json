@@ -1,5 +1,8 @@
 {
     "masmtasm.ASM.actions": {
+    
+
+
 
         "TASM": {
             "baseBundle": "<built-in>/TASM.jsdos",
@@ -9,7 +12,7 @@
             "run": [
                 "TASM ${file}",
                 "TLINK ${filename}",
-                ">V1TEST ${filename}"
+                ">${filename} < test.in"
             ],
             "debug": [
                 "TASM /zi ${file}",

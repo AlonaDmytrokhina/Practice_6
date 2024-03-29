@@ -1,3 +1,4 @@
 
 === test1 ===
-Bad command or filename - "D:\var"
+1 1
+3 0
