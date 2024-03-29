@@ -74,6 +74,7 @@ PrintError:
     int 21h
     jmp ExitProgram
 
+;==================================================================================================================
 FindSubStrInFile proc
     mov bx, FileHandle
     mov cl, 0             ; Зануляємо лічильник строк
@@ -98,6 +99,7 @@ DoneReading:
 
 FindSubStrInFile endp
 
+;==================================================================================================================
 FindSubString proc
     mov si, 0          ; Індекс у Buffer
     mov di, 0          ; Індекс у SubStr
@@ -128,6 +130,7 @@ FoundSubStr:
 
 FindSubString endp
 
+;==================================================================================================================
 CountSubStrInLine PROC
     mov cl, 0             ; Зануляємо регістр для лічильника підстрічок у рядку
     mov si, 0             ; Ініціалізуємо індекс у Buffer
@@ -139,26 +142,27 @@ CountLoop:
     je CompareNextCount   ; Якщо символи однакові, продовжити порівняння
     jne NextCharCount     ; Якщо ні, перейти до наступного символу
     inc si
-    jmp CountLoop
+    jmp CheckEndOfLine
 
 CompareNextCount:
-    cmp al, 0Ah             ; Перевірка кінця рядка
-    je EndOfLine          ; Якщо кінець рядка, вийти з циклу
     inc si
     inc di
     cmp byte ptr [SubStrg+di], '$' ; Чи досягнуто кінця підстрічки?
     je FoundSubStrCount
-    jmp CountLoop
+    jmp CheckEndOfLine
 
 NextCharCount:
     inc si
     xor di, di          ; Скинути індекс у SubStr
-    jmp CountLoop
-
+    jmp CheckEndOfLine
 
 FoundSubStrCount:
     inc cl               ; Якщо підстрічка знайдена, збільшити лічильник
-    jmp CountLoop
+
+CheckEndOfLine:
+    mov al, [Buffer+si]   ; Перевірка кінця рядка
+    cmp al, '$'
+    jne CountLoop
 
 EndOfLine:
     mov Counts[bx], cl  ; Збільшуємо кількість підстрічок у рядку в пам'яті
@@ -166,14 +170,14 @@ EndOfLine:
 
 CountSubStrInLine ENDP
 
-
+;==================================================================================================================
 PrintIndexAndCount proc
     mov ah, 02h            ; Вивід номеру строки
     mov dl, '0'            ; Початок номера строки
     add dl, bl             ; Додавання номера строки
     int 21h
 
-    mov ah, 02h            ; Вивід двокрапки
+    mov ah, 02h            ; Вивід пробілу
     mov dl, ' '            
     int 21h
 
@@ -185,6 +189,42 @@ PrintIndexAndCount proc
     ret
 PrintIndexAndCount endp
 
+;==================================================================================================================
+
+BubbleSort proc
+    mov cx, 255   ; Завантаження кількості елементів у буфері (255 - максимальна довжина буфера)
+    dec cx        ; Зменшення на 1
+    mov si, 0     ; Початковий індекс
+
+OuterLoop:
+    mov di, si          ; Збереження початкового значення si
+    mov bx, 255         ; Завантаження максимальної довжини масиву
+    sub bx, si          ; Вирахування кількості порівнянь для поточного елементу
+    dec bx              ; Зменшення на 1, бо ми порівнюємо з наступним елементом
+    jz EndOuterLoop     ; Якщо bx=0, закінчити зовнішній цикл
+
+    mov dx, di          ; Збереження значення di для використання його під час внутрішнього циклу
+
+InnerLoop:
+    mov al, [Buffer+si] ; Завантаження поточного елементу
+    mov ah, [Buffer+si+1] ; Завантаження наступного елементу
+    cmp al, ah          ; Порівняння поточного та наступного елементів
+    jle SkipSwap        ; Якщо поточний елемент менший або рівний, пропустити обмін
+    xchg al, ah         ; Обмін елементів
+    mov [Buffer+si], al ; Збереження поточного елементу
+    mov [Buffer+si+1], ah ; Збереження наступного елементу
+SkipSwap:
+    inc si              ; Збільшення індексу для наступного елементу
+    loop InnerLoop      ; Повторення внутрішнього циклу
+
+    inc di              ; Збільшення індексу для наступного елементу
+    loop OuterLoop      ; Повторення зовнішнього циклу
+
+EndOuterLoop:
+    ret
+BubbleSort endp
+
+;==================================================================================================================
 ErrorMsg db "Error: Unable to open or read file", '$'
 
 end start
